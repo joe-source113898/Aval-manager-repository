@@ -1,0 +1,38 @@
+# Node / Next
+node_modules/
+.next/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+.env.*
+!.env.example
+
+# Supabase temp
+infra/supabase/.temp/
+supabase/.temp/
+
+# Editor junk
+.DS_Store
+.vscode/
+.idea/
+*.code-workspace
+
+# Local tooling
+CODEX-README.md
+tools-for-web-app/
+
+# Monorepo caches / builds
+.pnpm-store/
+apps/*/node_modules/
+apps/*/.next/
+apps/*/out/
+
+# API virtualenvs / Python caches
+apps/api/.venv/
+apps/api/.pytest_cache/
+apps/api/.mypy_cache/

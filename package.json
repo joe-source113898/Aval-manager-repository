@@ -1,0 +1,16 @@
+{
+  "name": "aval-manager-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently -k -n web,supabase \"pnpm dev:web\" \"pnpm supabase:watch\"",
+    "dev:web": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "supabase:watch": "node scripts/watch-supabase.js",
+    "supabase:push": "supabase db push --yes"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

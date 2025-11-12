@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --primary: 142 69% 58%;
+  --primary-foreground: 144 61% 10%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --accent: 142 69% 58%;
+  --accent-foreground: 144 61% 10%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 142 69% 58%;
+  --radius: 0.8rem;
+  --fc-border-color: hsl(var(--border));
+  --fc-button-text-color: hsl(var(--primary-foreground));
+  --fc-button-bg-color: hsl(var(--primary));
+  --fc-button-border-color: transparent;
+  --fc-button-hover-bg-color: hsl(var(--primary) / 0.9);
+  --fc-button-active-bg-color: hsl(var(--primary) / 0.85);
+  --fc-event-bg-color: hsl(var(--primary) / 0.15);
+  --fc-event-border-color: hsl(var(--primary));
+  --fc-page-bg-color: hsl(var(--card));
+  --fc-today-bg-color: hsl(var(--primary) / 0.1);
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 5%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 142 69% 56%;
+  --primary-foreground: 144 61% 12%;
+  --secondary: 240 3.7% 20%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 142 69% 56%;
+  --accent-foreground: 144 61% 12%;
+  --destructive: 0 62% 42%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 142 69% 56%;
+  --fc-border-color: hsl(var(--border));
+  --fc-button-text-color: hsl(var(--primary-foreground));
+  --fc-button-bg-color: hsl(var(--primary));
+  --fc-button-border-color: transparent;
+  --fc-button-hover-bg-color: hsl(var(--primary) / 0.85);
+  --fc-button-active-bg-color: hsl(var(--primary) / 0.75);
+  --fc-event-bg-color: hsl(var(--primary) / 0.22);
+  --fc-event-border-color: hsl(var(--primary));
+  --fc-page-bg-color: hsl(var(--card));
+  --fc-today-bg-color: hsl(var(--primary) / 0.18);
+}
+
+body {
+  @apply bg-background text-foreground min-h-screen antialiased;
+}
+
+.fc {
+  color: hsl(var(--foreground));
+}
+
+.fc .fc-toolbar-title,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: hsl(var(--foreground));
+}
+
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--fc-border-color);
+}
+
+.fc .fc-h-event {
+  background-color: var(--fc-event-bg-color);
+  border-color: var(--fc-event-border-color);
+  color: hsl(var(--foreground));
+}
