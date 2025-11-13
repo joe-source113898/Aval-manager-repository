@@ -108,10 +108,41 @@ El watcher realiza un `supabase db push` inicial al arrancar para asegurarse de 
 - `pnpm --filter web build` – Compila el frontend.
 - `pnpm --filter web lint` – Ejecuta el linting.
 - `pnpm --filter web dev` – Desarrollo Next.js.
+- `pnpm --filter web test:e2e` – Ejecuta las pruebas end-to-end (Playwright).
 - `uvicorn main:app --reload` – Desarrollo FastAPI.
 - `pytest` – Tests de la API (placeholder).
 
+## Pruebas end-to-end
+
+Las pruebas de Playwright viven en `apps/web/tests/e2e` y validan la navegación pública y el guardado del panel. Para ejecutarlas:
+
+1. Instala los navegadores la primera vez:
+
+   ```bash
+   pnpm --filter web exec playwright install --with-deps
+   ```
+
+2. Levanta la API y el frontend en terminales separadas:
+
+   ```bash
+   # API
+   cd apps/api
+   source .venv/bin/activate
+   uvicorn apps.api.main:app --reload
+
+   # Frontend
+   pnpm --filter web dev
+   ```
+
+3. Corre las pruebas:
+
+   ```bash
+   pnpm --filter web test:e2e
+   ```
+
+Si la app corre en otra URL, define `E2E_BASE_URL` (por ejemplo `E2E_BASE_URL=http://127.0.0.1:3000 pnpm --filter web test:e2e`). Las pruebas usan los datos reales de la instancia configurada, por lo que se requiere una base de datos/API accesible.
+
 ## Licencia
 
-MIT
->>>>>>> 8f38aa7 (First commit)
+Aval-manager se distribuye bajo la licencia MIT. Puedes revisar los términos completos en el archivo `LICENSE` o en
+<https://opensource.org/licenses/MIT>. Al contribuir aceptas que tu aportación se incluya bajo la misma licencia.
