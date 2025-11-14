@@ -246,13 +246,39 @@ create table if not exists public.vetos_avales (
   aval_id uuid not null references public.avales (id) on delete cascade,
   inmobiliaria_id uuid references public.inmobiliarias (id) on delete set null,
   motivo text not null,
-  evidencia_documento_id uuid references public.documentos (id) on delete set null,
-  estatus text not null default 'activo' check (estatus in ('activo','levantado')),
+  estatus text not null default 'vetado' check (estatus in ('vetado','limpio')),
   registrado_por uuid references public.usuarios (id),
-  levantado_at timestamptz,
+  limpio_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'vetos_avales'
+      and column_name = 'levantado_at'
+  ) then
+    alter table public.vetos_avales
+      rename column levantado_at to limpio_at;
+  end if;
+end
+$$;
+
+do $$
+begin
+  update public.vetos_avales
+    set estatus = case estatus when 'activo' then 'vetado' when 'levantado' then 'limpio' else estatus end;
+  alter table public.vetos_avales
+    drop constraint if exists vetos_avales_estatus_check,
+    add constraint vetos_avales_estatus_check check (estatus in ('vetado','limpio'));
+end
+$$;
+
+alter table public.vetos_avales
+  drop column if exists evidencia_documento_id;
 
 create table if not exists public.clientes_morosidad (
   id uuid primary key default gen_random_uuid(),

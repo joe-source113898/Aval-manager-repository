@@ -1,6 +1,5 @@
 import { ThemeModeSelector } from "@/components/admin/config/theme-mode-selector";
 import { PreferencesForm } from "@/components/admin/config/preferences-form";
-import { IntegrationInfo } from "@/components/admin/config/integration-info";
 
 export default function AdminConfiguracionPage() {
   return (
@@ -26,9 +25,6 @@ export default function AdminConfiguracionPage() {
         <PreferencesForm />
       </section>
 
-      <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <IntegrationInfo />
-      </section>
     </div>
   );
 }

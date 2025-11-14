@@ -244,15 +244,8 @@ async def obtener_lista_negra_avales(
         inm_resp = client.table("inmobiliarias").select("id,nombre").in_("id", list(inmobiliaria_ids)).execute()
         inmobiliaria_map = {item["id"]: item for item in handle_response(inm_resp) or []}
 
-    documento_map = {}
-    if documento_ids:
-        doc_resp = client.table("documentos").select("id,archivo_path").in_("id", list(documento_ids)).execute()
-        documento_map = {item["id"]: item for item in handle_response(doc_resp) or []}
-    signed_map = _build_signed_urls_for_documents(documento_map)
-
     results: List[PublicVetoAval] = []
     for row in registros:
-        doc_id = row.get("evidencia_documento_id")
         results.append(
             PublicVetoAval(
                 id=row["id"],
@@ -261,7 +254,6 @@ async def obtener_lista_negra_avales(
                 inmobiliaria_id=row.get("inmobiliaria_id"),
                 inmobiliaria_nombre=inmobiliaria_map.get(row.get("inmobiliaria_id"), {}).get("nombre"),
                 motivo=row.get("motivo"),
-                evidencia_url=signed_map.get(doc_id),
                 estatus=row.get("estatus"),
                 created_at=row.get("created_at"),
             )
@@ -287,8 +279,6 @@ async def obtener_clientes_vetados(
         return []
 
     cliente_ids = {row["cliente_id"] for row in registros if row.get("cliente_id")}
-    documento_ids = {row["evidencia_documento_id"] for row in registros if row.get("evidencia_documento_id")}
-
     clientes_map = {}
     if cliente_ids:
         cli_resp = client.table("clientes").select("id,nombre_completo").in_("id", list(cliente_ids)).execute()

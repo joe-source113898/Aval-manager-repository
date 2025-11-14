@@ -17,7 +17,6 @@ const navItems = [
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/firmas", label: "Firmas", icon: CalendarDays },
   { href: "/admin/lista-negra", label: "Lista negra", icon: AlertTriangle },
-  { href: "/admin/documentos", label: "Documentos", icon: FileText },
   { href: "/admin/configuracion", label: "Configuración", icon: Settings },
 ];
 

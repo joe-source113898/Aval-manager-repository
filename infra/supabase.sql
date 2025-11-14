@@ -190,10 +190,9 @@ create table if not exists public.vetos_avales (
   aval_id uuid not null references public.avales (id) on delete cascade,
   inmobiliaria_id uuid references public.inmobiliarias (id) on delete set null,
   motivo text not null,
-  evidencia_documento_id uuid references public.documentos (id) on delete set null,
-  estatus text not null default 'activo' check (estatus in ('activo','levantado')),
+  estatus text not null default 'vetado' check (estatus in ('vetado','limpio')),
   registrado_por uuid references public.usuarios (id),
-  levantado_at timestamptz,
+  limpio_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

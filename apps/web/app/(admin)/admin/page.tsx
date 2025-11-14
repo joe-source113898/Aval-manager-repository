@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarDays, ClipboardList, FileText, Layers2, Settings, Users } from "lucide-react";
+import { AlertTriangle, CalendarDays, ClipboardList, FileText, Settings, Users } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -74,7 +74,6 @@ export default async function AdminDashboardPage() {
     { href: "/admin/clientes", label: "Clientes", icon: Users },
     { href: "/admin/firmas", label: "Firmas", icon: CalendarDays },
     { href: "/admin/firmas?tab=contratos", label: "Contratos firmados", icon: ClipboardList },
-    { href: "/admin/documentos", label: "Documentos", icon: Layers2 },
     { href: "/admin/lista-negra", label: "Lista negra", icon: AlertTriangle },
     { href: "/admin/configuracion", label: "Configuración", icon: Settings },
   ];

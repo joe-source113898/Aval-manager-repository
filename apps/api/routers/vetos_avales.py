@@ -39,8 +39,8 @@ async def create_veto_aval(payload: AvalVetoCreate, user: dict = Depends(require
     data_payload = jsonable_encoder(payload, exclude_none=True)
     if not data_payload.get("registrado_por") and user.get("id"):
         data_payload["registrado_por"] = str(user["id"])
-    if data_payload.get("estatus") == "levantado" and not data_payload.get("levantado_at"):
-        data_payload["levantado_at"] = datetime.now(timezone.utc).isoformat()
+    if data_payload.get("estatus") == "limpio" and not data_payload.get("limpio_at"):
+        data_payload["limpio_at"] = datetime.now(timezone.utc).isoformat()
     response = client.table("vetos_avales").insert(data_payload).execute()
     data = handle_response(response)
     if not data:
@@ -52,8 +52,8 @@ async def create_veto_aval(payload: AvalVetoCreate, user: dict = Depends(require
 async def update_veto_aval(veto_id: UUID, payload: AvalVetoUpdate, _: dict = Depends(require_admin)) -> AvalVeto:
     client = get_client()
     data_payload = {k: v for k, v in jsonable_encoder(payload, exclude_none=True).items() if v is not None}
-    if data_payload.get("estatus") == "levantado" and not data_payload.get("levantado_at"):
-        data_payload["levantado_at"] = datetime.now(timezone.utc).isoformat()
+    if data_payload.get("estatus") == "limpio" and not data_payload.get("limpio_at"):
+        data_payload["limpio_at"] = datetime.now(timezone.utc).isoformat()
     data_payload["updated_at"] = datetime.now(timezone.utc).isoformat()
     response = client.table("vetos_avales").update(data_payload).eq("id", str(veto_id)).execute()
     data = handle_response(response)

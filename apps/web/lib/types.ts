@@ -139,10 +139,9 @@ export interface AvalVeto {
   aval_id: string;
   inmobiliaria_id?: string | null;
   motivo: string;
-  evidencia_documento_id?: string | null;
-  estatus: "activo" | "levantado";
+  estatus: "vetado" | "limpio";
   registrado_por?: string | null;
-  levantado_at?: string | null;
+  limpio_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -191,8 +190,7 @@ export interface PublicVetoAval {
   inmobiliaria_id?: string | null;
   inmobiliaria_nombre?: string | null;
   motivo: string;
-  evidencia_url?: string | null;
-  estatus: "activo" | "levantado";
+  estatus: "vetado" | "limpio";
   created_at: string;
 }
 

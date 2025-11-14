@@ -356,12 +356,11 @@ class Documento(DocumentoBase):
 
 class AvalVetoBase(BaseModel):
     aval_id: UUID
-    inmobiliaria_id: UUID | None = None
+    inmobiliaria_id: UUID
     motivo: str
-    evidencia_documento_id: UUID | None = None
-    estatus: Literal["activo", "levantado"] = "activo"
+    estatus: Literal["vetado", "limpio"] = "vetado"
     registrado_por: UUID | None = None
-    levantado_at: datetime | None = None
+    limpio_at: datetime | None = None
 
 
 class AvalVetoCreate(AvalVetoBase):
@@ -371,10 +370,9 @@ class AvalVetoCreate(AvalVetoBase):
 class AvalVetoUpdate(BaseModel):
     inmobiliaria_id: UUID | None = None
     motivo: str | None = None
-    evidencia_documento_id: UUID | None = None
-    estatus: Literal["activo", "levantado"] | None = None
+    estatus: Literal["vetado", "limpio"] | None = None
     registrado_por: UUID | None = None
-    levantado_at: datetime | None = None
+    limpio_at: datetime | None = None
 
 
 class AvalVeto(AvalVetoBase):
@@ -443,8 +441,7 @@ class PublicVetoAval(BaseModel):
     inmobiliaria_id: UUID | None = None
     inmobiliaria_nombre: str | None = None
     motivo: str
-    evidencia_url: str | None = None
-    estatus: Literal["activo", "levantado"]
+    estatus: Literal["vetado", "limpio"]
     created_at: datetime
 
 
