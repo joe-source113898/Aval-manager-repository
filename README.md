@@ -50,6 +50,8 @@ API_BASE_URL=http://localhost:8000
 
 - Copia `.env.example` a `apps/web/.env.local` y rellena las variables públicas.
 - Copia `.env.example` a `apps/api/.env` para la API (incluye claves privadas).
+- Estos valores ahora solo viven en tus archivos `.env*`. Ya no existen en el panel de administración, así que consúltalos directamente en el dashboard de Supabase (URL, anon key, service role, etc.) y crea tus propios archivos locales.
+- Asegúrate de que los `.env*` sigan fuera del control de versiones (están ignorados en `.gitignore`) y nunca copies sus contenidos a la interfaz.
 
 ## Instalación
 

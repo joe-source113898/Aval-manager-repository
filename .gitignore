@@ -2,6 +2,8 @@
 node_modules/
 .next/
 out/
+.turbo/
+.vercel/
 
 # Python
 __pycache__/
@@ -15,6 +17,8 @@ __pycache__/
 # Supabase temp
 infra/supabase/.temp/
 supabase/.temp/
+supabase/.branches/
+supabase/.shadowenv/
 
 # Editor junk
 .DS_Store
@@ -31,8 +35,14 @@ tools-for-web-app/
 apps/*/node_modules/
 apps/*/.next/
 apps/*/out/
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/.playwright/
 
 # API virtualenvs / Python caches
 apps/api/.venv/
 apps/api/.pytest_cache/
 apps/api/.mypy_cache/
+apps/api/.ruff_cache/
+apps/api/.coverage
+coverage.xml
