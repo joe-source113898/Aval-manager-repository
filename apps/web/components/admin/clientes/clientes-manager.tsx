@@ -285,6 +285,7 @@ export function ClientesManager() {
       archivo_path: string;
       created_at: string;
       notas?: string | null;
+      bucket?: string;
     }> = [];
     if (selectedCliente.identificacion_oficial_url) {
       docs.push({
@@ -383,7 +384,13 @@ export function ClientesManager() {
                     {field.value ? (
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span>Hay un archivo almacenado para este cliente.</span>
-                        <Button type="button" variant="outline" size="sm" onClick={() => openIdentificacion(field.value)}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!field.value}
+                          onClick={() => field.value && openIdentificacion(field.value)}
+                        >
                           Ver identificación
                         </Button>
                       </div>

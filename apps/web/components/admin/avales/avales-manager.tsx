@@ -55,7 +55,11 @@ const documentFields = [
     label: "Buró de crédito",
     accept: "application/pdf,application/zip,application/x-zip-compressed,.zip",
   },
-] as const;
+] as const satisfies readonly {
+  name: string;
+  label: string;
+  accept?: string;
+}[];
 
 type DocumentFieldName = (typeof documentFields)[number]["name"];
 
@@ -1017,6 +1021,7 @@ const addSlot = (day: DayKey) => {
                   {documentFields.map((field) => {
                     const currentPath = form.watch(field.name as keyof z.infer<typeof schema>) as string | null | undefined;
                     const selectedFile = files[field.name];
+                    const accept = "accept" in field ? field.accept : undefined;
                     return (
                       <div key={field.name} className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 p-4">
                         <div>
@@ -1040,7 +1045,7 @@ const addSlot = (day: DayKey) => {
                         </div>
                         <input
                           type="file"
-                          accept={field.accept ?? DEFAULT_ACCEPT}
+                          accept={accept ?? DEFAULT_ACCEPT}
                           onChange={(event) => {
                             const file = event.target.files?.[0] ?? null;
                             setFiles((prev) => ({ ...prev, [field.name]: file }));

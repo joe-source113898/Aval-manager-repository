@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import Head from "next/head";
-import FullCalendar, { EventClickArg, EventContentArg } from "@fullcalendar/react";
+import FullCalendar from "@fullcalendar/react";
+import { EventClickArg, EventContentArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";

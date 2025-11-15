@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Controller, type Control, type FieldPath, type FieldValues } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type ControllerRenderProps,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -11,7 +17,7 @@ interface FormFieldProps<TFieldValues extends FieldValues, TName extends FieldPa
   name: TName;
   label?: string;
   description?: string;
-  children: (field: ReturnType<typeof Controller>["field"]) => React.ReactNode;
+  children: (field: ControllerRenderProps<TFieldValues, TName>) => React.ReactNode;
 }
 
 export function FormField<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({

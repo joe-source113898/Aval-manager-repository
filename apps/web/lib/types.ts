@@ -128,6 +128,7 @@ export interface Documento {
   cliente_id?: string | null;
   tipo: string;
   archivo_path: string;
+  bucket?: string | null;
   signed_url?: string | null;
   creado_por?: string | null;
   notas?: string | null;
@@ -190,7 +191,8 @@ export interface PublicVetoAval {
   inmobiliaria_id?: string | null;
   inmobiliaria_nombre?: string | null;
   motivo: string;
-  estatus: "vetado" | "limpio";
+  estatus: "vetado" | "limpio" | "activo";
+  evidencia_url?: string | null;
   created_at: string;
 }
 

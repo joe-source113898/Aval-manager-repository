@@ -149,7 +149,7 @@ export function ClientesVetadosManager() {
       accessorKey: "estatus",
       header: "Estatus",
       cell: ({ row }) => (
-        <Badge variant={row.original.estatus === "vetado" ? "destructive" : "default"} className="capitalize">
+        <Badge variant={row.original.estatus === "vetado" ? "error" : "default"} className="capitalize">
           {row.original.estatus}
         </Badge>
       ),

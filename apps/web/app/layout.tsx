@@ -1,7 +1,6 @@
 import "./globals.css";
 
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 
 import { QueryProvider } from "@/providers/query-provider";
@@ -10,8 +9,6 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { ToasterProvider } from "@/providers/toaster-provider";
 import { PWAProvider } from "@/providers/pwa-provider";
 import { getServerSupabase } from "@/lib/supabase/server";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Aval-manager",
@@ -31,7 +28,9 @@ export const metadata: Metadata = {
     apple: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    maskIcon: "/icons/icon-maskable.png",
+    other: [
+      { rel: "mask-icon", url: "/icons/icon-maskable.png" },
+    ],
   },
   other: {
     "apple-mobile-web-app-capable": "yes",
@@ -54,7 +53,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${inter.variable} min-h-screen bg-background font-sans antialiased`}>
+      <body className="min-h-screen bg-background font-sans antialiased">
         <SupabaseProvider initialSession={session}>
           <ThemeProvider>
             <QueryProvider>

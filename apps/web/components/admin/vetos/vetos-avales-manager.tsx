@@ -147,7 +147,7 @@ export function VetosAvalesManager() {
       accessorKey: "estatus",
       header: "Estatus",
       cell: ({ row }) => (
-        <Badge variant={row.original.estatus === "vetado" ? "destructive" : "secondary"}>
+        <Badge variant={row.original.estatus === "vetado" ? "error" : "secondary"}>
           {row.original.estatus === "vetado" ? "Vetado" : "Limpio"}
         </Badge>
       ),

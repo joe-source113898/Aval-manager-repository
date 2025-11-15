@@ -198,7 +198,7 @@ export function ListaNegraPublicaClient() {
                       Inmobiliaria: {veto.inmobiliaria_nombre ?? "General"}
                     </p>
                   </div>
-                  <Badge variant={veto.estatus === "activo" ? "destructive" : "secondary"}>{veto.estatus}</Badge>
+                  <Badge variant={veto.estatus === "activo" ? "error" : "secondary"}>{veto.estatus}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{veto.motivo}</p>
                 <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
@@ -286,7 +286,7 @@ export function ListaNegraPublicaClient() {
                       {cliente.motivo_tipo === "moroso" ? "Moroso" : "Problemático"}
                     </Badge>
                   </div>
-                  <Badge variant={cliente.estatus === "vetado" ? "destructive" : "secondary"} className="capitalize">
+                  <Badge variant={cliente.estatus === "vetado" ? "error" : "secondary"} className="capitalize">
                     {cliente.estatus}
                   </Badge>
                 </div>
@@ -298,7 +298,7 @@ export function ListaNegraPublicaClient() {
                       dateStyle: "medium",
                     }).format(new Date(cliente.created_at))}
                   </span>
-                  <Badge variant={cliente.estatus === "vetado" ? "destructive" : "secondary"} className="capitalize">
+                  <Badge variant={cliente.estatus === "vetado" ? "error" : "secondary"} className="capitalize">
                     {cliente.estatus === "vetado" ? "Restricción vigente" : "Cliente limpio"}
                   </Badge>
                 </div>
