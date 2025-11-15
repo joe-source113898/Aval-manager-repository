@@ -144,6 +144,19 @@ Las pruebas de Playwright viven en `apps/web/tests/e2e` y validan la navegación
 
 Si la app corre en otra URL, define `E2E_BASE_URL` (por ejemplo `E2E_BASE_URL=http://127.0.0.1:3000 pnpm --filter web test:e2e`). Las pruebas usan los datos reales de la instancia configurada, por lo que se requiere una base de datos/API accesible.
 
+## PWA (iOS y Android)
+
+El frontend ya incluye todo lo necesario para instalarse como app:
+
+- `apps/web/public/manifest.json` define nombre, íconos, colores y accesos directos. Ajusta ahí la marca o los atajos.
+- `apps/web/public/sw.js` y `apps/web/public/offline.html` implementan el service worker con caché offline y una pantalla de respaldo.
+- Los íconos viven en `apps/web/public/icons/`. Reemplázalos por versiones personalizadas (192 px, 512 px y uno maskable) si cambias la identidad visual.
+- `apps/web/providers/pwa-provider.tsx` registra el service worker y expone eventos `pwa:*` para mostrar banners de “Agregar a inicio”.
+- El layout principal (`apps/web/app/layout.tsx`) ya declara el manifest, meta tags para Apple y el provider PWA.
+- Para instalarla en Android abre la app en Chrome, espera el banner “Instalar app” o usa el menú ⋮ → “Agregar a pantalla de inicio”. En iOS abre Safari → “Compartir” → “Agregar a pantalla de inicio”.
+
+Para probarlo en local: `pnpm --filter web dev`, abre Chrome y ejecuta la auditoría “Progressive Web App” de Lighthouse. Si usas iOS, expón tu entorno con HTTPS (o la versión desplegada) y agrega la app desde Safari para validar el modo standalone.
+
 ## Licencia
 
 Aval-manager se distribuye bajo la licencia MIT. Puedes revisar los términos completos en el archivo `LICENSE` o en
