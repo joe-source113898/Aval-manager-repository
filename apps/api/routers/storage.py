@@ -3,7 +3,7 @@ from __future__ import annotations
 from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from apps.api.core.auth import require_admin
@@ -64,5 +64,9 @@ async def proxy_storage_object(
     headers = {
         "Content-Disposition": f'{disposition}; filename="{filename}"',
         "Cache-Control": "private, max-age=60",
+        "Content-Length": str(len(file_bytes)),
     }
-    return StreamingResponse(BytesIO(file_bytes), media_type=mime_type, headers=headers)
+    # En PythonAnywhere el streaming generaba write errors/SIGPIPE, así que
+    # devolvemos el payload completo para garantizar que el visor PDF recibe
+    # todos los bytes.
+    return Response(content=file_bytes, media_type=mime_type, headers=headers)
