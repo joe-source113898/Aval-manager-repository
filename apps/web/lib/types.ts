@@ -49,6 +49,7 @@ export interface Cliente {
   notas?: string | null;
   referencias_familiares: ClienteReferenciaFamiliar[];
   referencias_conocidos: ClienteReferenciaConocido[];
+  creado_por?: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, Upl
 from pypdf import PdfReader, PdfWriter
 from supabase import StorageException
 
-from apps.api.core.auth import require_admin
+from apps.api.core.auth import require_admin, require_admin_or_asesor
 from apps.api.db.supabase_client import get_client, handle_response
 from apps.api.models.schemas import Aval, AvalBuroCreditoUploadResponse, AvalCreate, AvalDisponibilidadInput, AvalUpdate
 
@@ -89,7 +89,7 @@ def _build_storage_path(aval_id: UUID, filename: str) -> str:
 
 
 @router.get("", response_model=List[Aval])
-async def list_avales(_: dict = Depends(require_admin)) -> List[Aval]:
+async def list_avales(_: dict = Depends(require_admin_or_asesor)) -> List[Aval]:
     client = get_client()
     response = client.table("avales").select("*").order("created_at", desc=True).execute()
     return [Aval(**row) for row in handle_response(response)]

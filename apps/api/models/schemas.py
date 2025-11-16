@@ -81,6 +81,7 @@ class ClienteBase(BaseModel):
     notas: str | None = None
     referencias_familiares: list[ClienteReferenciaFamiliar] = Field(default_factory=list)
     referencias_conocidos: list[ClienteReferenciaConocido] = Field(default_factory=list)
+    creado_por: UUID | None = None
 
 
 class ClienteCreate(ClienteBase):

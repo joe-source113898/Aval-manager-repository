@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from apps.api.core.auth import require_admin
+from apps.api.core.auth import require_admin_or_asesor
 from apps.api.services.storage import (
     DEFAULT_BUCKET,
     build_proxy_url,
@@ -38,7 +38,7 @@ class StorageSignResponse(BaseModel):
 
 
 @router.post("/sign", response_model=StorageSignResponse)
-async def sign_storage_object(payload: StorageSignRequest, _: dict = Depends(require_admin)) -> StorageSignResponse:
+async def sign_storage_object(payload: StorageSignRequest, _: dict = Depends(require_admin_or_asesor)) -> StorageSignResponse:
     try:
         url, bucket, expires_at, token = build_proxy_url(payload.bucket, payload.path, payload.expires_in)
         normalized_path = normalize_storage_path(payload.path)

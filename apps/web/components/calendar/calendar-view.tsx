@@ -316,7 +316,7 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <div className="calendar-desktop relative overflow-hidden rounded-[28px] border border-border/80 bg-gradient-to-br from-background via-card to-card/80 p-6 shadow-2xl shadow-black/5">
       <Head>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.19/main.min.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.19/main.min.css" />
@@ -359,6 +359,123 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
           <span>Bloques de disponibilidad del aval en turno (Lun a Vie)</span>
         </div>
       ) : null}
+      <style jsx global>{`
+        @media (min-width: 720px) {
+          .calendar-desktop .fc {
+            font-family: "SF Pro Display", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: hsl(var(--foreground));
+          }
+          .calendar-desktop .fc .fc-toolbar.fc-header-toolbar {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid hsl(var(--border));
+            margin-bottom: 1.25rem;
+          }
+          .calendar-desktop .fc .fc-toolbar-chunk {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+          }
+          .calendar-desktop .fc .fc-button {
+            border: 0;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 72% 32%));
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
+            text-transform: none;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+          }
+          .calendar-desktop .fc .fc-button-primary:not(:disabled).fc-button-active,
+          .calendar-desktop .fc .fc-button-primary:not(:disabled):active,
+          .calendar-desktop .fc .fc-button-primary:not(:disabled):focus,
+          .calendar-desktop .fc .fc-button-primary:not(:disabled):hover {
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.35);
+          }
+          .calendar-desktop .fc .fc-button-group .fc-button {
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border));
+            box-shadow: none;
+          }
+          .calendar-desktop .fc .fc-button-group .fc-button.fc-button-active {
+            background: linear-gradient(135deg, hsl(222 88% 60%), hsl(224 76% 52%));
+            border-color: transparent;
+            color: white;
+          }
+          .calendar-desktop .fc .fc-daygrid-day,
+          .calendar-desktop .fc .fc-timegrid-slot {
+            border-color: rgba(148, 163, 184, 0.25);
+          }
+          .calendar-desktop .fc-direction-ltr .fc-daygrid-day-frame {
+            border-radius: 18px;
+            margin: 4px;
+            padding: 4px;
+            transition: background 0.2s ease, transform 0.2s ease;
+          }
+          .calendar-desktop .fc-daygrid-day-frame:hover {
+            background: rgba(148, 163, 184, 0.08);
+            transform: translateY(-1px);
+          }
+          .calendar-desktop .fc .fc-col-header-cell-cushion {
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: hsl(215 16% 47%);
+            padding: 0.9rem 0;
+          }
+          .calendar-desktop .fc .fc-daygrid-day-top {
+            align-items: center;
+            justify-content: center;
+          }
+          .calendar-desktop .fc .fc-day-today {
+            background: transparent;
+          }
+          .calendar-desktop .fc .fc-day-today .fc-daygrid-day-frame {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+          }
+          .calendar-desktop .fc .fc-daygrid-day-number,
+          .calendar-desktop .fc .fc-timegrid-axis-cushion {
+            font-weight: 600;
+            color: hsl(var(--foreground) / 0.9);
+          }
+          .calendar-desktop .fc .fc-scrollgrid {
+            border: 0;
+          }
+          .calendar-desktop .fc-theme-standard td,
+          .calendar-desktop .fc-theme-standard th {
+            border-color: rgba(148, 163, 184, 0.24);
+          }
+          .calendar-desktop .fc .availability-block {
+            border-radius: 14px;
+            border-width: 1.5px;
+            font-weight: 600;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          }
+          .calendar-desktop .fc .fc-event-main {
+            font-weight: 600;
+          }
+          .calendar-desktop .fc .fc-event {
+            border: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(79, 70, 229, 0.15));
+            color: hsl(224 76% 43%);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+            backdrop-filter: blur(6px);
+          }
+          .calendar-desktop .fc .fc-event:hover {
+            transform: translateY(-1px);
+          }
+          .calendar-desktop .fc .fc-timegrid-axis-cushion {
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            color: hsl(215 16% 47%);
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -91,19 +91,22 @@ export function SiteHeader() {
               {signingOut ? "Cerrando…" : "Cerrar sesión"}
             </button>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link href="/login?view=admin" className={buttonVariants({ variant: "secondary", size: "sm" })}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/login?view=admin"
+                className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "min-w-[140px] justify-center")}
+              >
                 Acceso administrador
               </Link>
               <Link
                 href="/login?view=asesor"
-                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "min-w-[140px] justify-center")}
               >
                 Acceso asesores
               </Link>
               <Link
                 href="/registro-asesor"
-                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "min-w-[140px] justify-center")}
               >
                 Registro asesor
               </Link>

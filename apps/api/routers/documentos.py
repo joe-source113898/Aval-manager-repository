@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
-from apps.api.core.auth import require_admin
+from apps.api.core.auth import require_admin, require_admin_or_asesor
 from apps.api.db.supabase_client import get_client, handle_response
 from apps.api.models.schemas import Documento, DocumentoCreate, DocumentoUpdate
 from apps.api.services.documentos import fetch_documentos
@@ -18,7 +18,7 @@ async def list_documentos(
     contrato_id: Optional[UUID] = Query(default=None),
     aval_id: Optional[UUID] = Query(default=None),
     cliente_id: Optional[UUID] = Query(default=None),
-    _: dict = Depends(require_admin),
+    _: dict = Depends(require_admin_or_asesor),
 ) -> List[Documento]:
     client = get_client()
     data = fetch_documentos(client, contrato_id=contrato_id, aval_id=aval_id, cliente_id=cliente_id)
@@ -26,7 +26,7 @@ async def list_documentos(
 
 
 @router.get("/aval/{aval_id}", response_model=List[Documento])
-async def list_documentos_por_aval(aval_id: UUID, _: dict = Depends(require_admin)) -> List[Documento]:
+async def list_documentos_por_aval(aval_id: UUID, _: dict = Depends(require_admin_or_asesor)) -> List[Documento]:
     client = get_client()
     data = fetch_documentos(client, aval_id=aval_id)
     return [Documento(**row) for row in data]

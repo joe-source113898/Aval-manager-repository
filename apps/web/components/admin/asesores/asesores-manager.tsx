@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,15 +10,7 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/tables/data-table";
 import { FormField, FormGrid } from "@/components/forms/form";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useApi } from "@/hooks/use-api";
@@ -201,10 +194,13 @@ export function AsesoresManager() {
             Registra y controla el pago de comisión por firma y el total de firmas gestionadas por cada asesor.
           </p>
         </div>
+        <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
+          <p>El registro de nuevos asesores se realiza desde el portal público.</p>
+          <Link href="/registro-asesor" className="text-primary underline">
+            Abrir formulario de registro
+          </Link>
+        </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => (open ? setDialogOpen(true) : handleClose())}>
-          <DialogTrigger asChild>
-            <Button>Agregar asesor</Button>
-          </DialogTrigger>
           <DialogContent className="max-w-[min(96vw,560px)]">
             <DialogHeader>
               <DialogTitle>{editing ? "Editar asesor" : "Registrar asesor"}</DialogTitle>

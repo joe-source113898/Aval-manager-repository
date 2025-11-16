@@ -1,16 +1,24 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 
-from apps.api.core.auth import require_admin
+from postgrest.exceptions import APIError
+
+from apps.api.core.auth import require_admin_or_asesor
 from apps.api.db.supabase_client import get_client, handle_response
 from apps.api.models.schemas import Firma, FirmaCreate, FirmaUpdate
 
 router = APIRouter(prefix="/firmas", tags=["firmas"])
+logger = logging.getLogger(__name__)
+
+
+def _column_missing(exc: Exception, column: str) -> bool:
+    return isinstance(exc, APIError) and column in str(exc).lower()
 
 
 def _ensure_entities_habilitated(client, data_payload: dict) -> None:
@@ -59,19 +67,39 @@ def _ensure_entities_habilitated(client, data_payload: dict) -> None:
 
 
 @router.get("", response_model=List[Firma])
-async def list_firmas(_: dict = Depends(require_admin)) -> List[Firma]:
+async def list_firmas(user: dict = Depends(require_admin_or_asesor)) -> List[Firma]:
     client = get_client()
-    response = client.table("firmas").select("*").order("fecha_inicio", desc=True).execute()
+    query = client.table("firmas").select("*").order("fecha_inicio", desc=True)
+    if user.get("role") != "admin" and user.get("id"):
+        query = query.eq("creado_por", str(user["id"]))
+    try:
+        response = query.execute()
+    except APIError as exc:
+        if _column_missing(exc, "creado_por"):
+            logger.warning("Columna creado_por ausente en firmas; se omite filtro temporalmente.")
+            response = client.table("firmas").select("*").order("fecha_inicio", desc=True).execute()
+        else:
+            raise
     return [Firma(**row) for row in handle_response(response)]
 
 
 @router.post("", response_model=Firma, status_code=status.HTTP_201_CREATED)
-async def create_firma(payload: FirmaCreate, _: dict = Depends(require_admin)) -> Firma:
+async def create_firma(payload: FirmaCreate, user: dict = Depends(require_admin_or_asesor)) -> Firma:
     client = get_client()
     data_payload = jsonable_encoder(payload, exclude_none=True)
     data_payload.setdefault("fecha_fin", data_payload.get("fecha_inicio"))
+    if user.get("id"):
+        data_payload.setdefault("creado_por", str(user["id"]))
     _ensure_entities_habilitated(client, data_payload)
-    response = client.table("firmas").insert(data_payload).execute()
+    try:
+        response = client.table("firmas").insert(data_payload).execute()
+    except APIError as exc:
+        if _column_missing(exc, "creado_por"):
+            logger.warning("Columna creado_por ausente en firmas; reintentando inserción sin el campo.")
+            data_payload.pop("creado_por", None)
+            response = client.table("firmas").insert(data_payload).execute()
+        else:
+            raise
     data = handle_response(response)
     if not data:
         raise HTTPException(status_code=500, detail="No se pudo crear la firma")
@@ -79,7 +107,7 @@ async def create_firma(payload: FirmaCreate, _: dict = Depends(require_admin)) -
 
 
 @router.put("/{firma_id}", response_model=Firma)
-async def update_firma(firma_id: UUID, payload: FirmaUpdate, _: dict = Depends(require_admin)) -> Firma:
+async def update_firma(firma_id: UUID, payload: FirmaUpdate, user: dict = Depends(require_admin_or_asesor)) -> Firma:
     client = get_client()
     data_payload = jsonable_encoder(payload, exclude_none=True)
     if "fecha_inicio" in data_payload and "fecha_fin" not in data_payload:
@@ -95,7 +123,23 @@ async def update_firma(firma_id: UUID, payload: FirmaUpdate, _: dict = Depends(r
             if field not in merged and existing.get(field):
                 merged[field] = existing[field]
     _ensure_entities_habilitated(client, merged)
-    response = client.table("firmas").update(data_payload).eq("id", str(firma_id)).execute()
+    try:
+        if user.get("id") and user.get("role") != "admin":
+            response = (
+                client.table("firmas")
+                .update(data_payload)
+                .eq("id", str(firma_id))
+                .eq("creado_por", str(user["id"]))
+                .execute()
+            )
+        else:
+            response = client.table("firmas").update(data_payload).eq("id", str(firma_id)).execute()
+    except APIError as exc:
+        if _column_missing(exc, "creado_por"):
+            logger.warning("Columna creado_por ausente en firmas; se actualiza sin filtro por asesor.")
+            response = client.table("firmas").update(data_payload).eq("id", str(firma_id)).execute()
+        else:
+            raise
     data = handle_response(response)
     if not data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Firma no encontrada")
@@ -103,7 +147,17 @@ async def update_firma(firma_id: UUID, payload: FirmaUpdate, _: dict = Depends(r
 
 
 @router.delete("/{firma_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_firma(firma_id: UUID, _: dict = Depends(require_admin)) -> Response:
+async def delete_firma(firma_id: UUID, user: dict = Depends(require_admin_or_asesor)) -> Response:
     client = get_client()
-    client.table("firmas").delete().eq("id", str(firma_id)).execute()
+    query = client.table("firmas").delete().eq("id", str(firma_id))
+    if user.get("role") != "admin" and user.get("id"):
+        query = query.eq("creado_por", str(user["id"]))
+    try:
+        query.execute()
+    except APIError as exc:
+        if _column_missing(exc, "creado_por"):
+            logger.warning("Columna creado_por ausente en firmas; se elimina sin filtro por asesor.")
+            client.table("firmas").delete().eq("id", str(firma_id)).execute()
+        else:
+            raise
     return Response(status_code=status.HTTP_204_NO_CONTENT)

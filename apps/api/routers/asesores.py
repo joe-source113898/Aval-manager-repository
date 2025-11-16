@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 
-from apps.api.core.auth import require_admin
+from apps.api.core.auth import require_admin, require_admin_or_asesor
 from apps.api.db.supabase_client import get_client, handle_response
 from apps.api.models.schemas import Asesor, AsesorCreate, AsesorUpdate
 
@@ -15,9 +15,12 @@ router = APIRouter(prefix="/asesores", tags=["asesores"])
 
 
 @router.get("", response_model=List[Asesor])
-async def list_asesores(_: dict = Depends(require_admin)) -> List[Asesor]:
+async def list_asesores(user: dict = Depends(require_admin_or_asesor)) -> List[Asesor]:
     client = get_client()
-    asesores_resp = client.table("asesores").select("*").order("nombre", desc=False).execute()
+    query = client.table("asesores").select("*").order("nombre", desc=False)
+    if user.get("role") == "asesor":
+        query = query.eq("user_id", str(user.get("id")))
+    asesores_resp = query.execute()
     asesores_data = handle_response(asesores_resp) or []
 
     comisiones_resp = (
@@ -36,6 +39,36 @@ async def list_asesores(_: dict = Depends(require_admin)) -> List[Asesor]:
         row["firmas_count"] = firmas_counter.get(asesor_id, 0)
         enriched.append(Asesor(**row))
     return enriched
+
+
+@router.get("/me", response_model=Asesor)
+async def get_current_asesor(user: dict = Depends(require_admin_or_asesor)) -> Asesor:
+    client = get_client()
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Asesor no encontrado")
+    response = (
+        client.table("asesores")
+        .select("*")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    data = handle_response(response)
+    if not data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Asesor no encontrado")
+    asesor_row = data[0] or {}
+    asesor_id = str(asesor_row.get("id"))
+    comisiones_resp = (
+        client.table("pagos_comisiones")
+        .select("beneficiario_id")
+        .eq("beneficiario_tipo", "asesor")
+        .eq("beneficiario_id", asesor_id)
+        .execute()
+    )
+    comisiones = handle_response(comisiones_resp) or []
+    asesor_row["firmas_count"] = len(comisiones)
+    return Asesor(**asesor_row)
 
 
 @router.post("", response_model=Asesor, status_code=status.HTTP_201_CREATED)

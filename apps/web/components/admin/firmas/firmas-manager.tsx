@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useApi } from "@/hooks/use-api";
 import { useStorageProxy } from "@/hooks/use-storage-proxy";
 import { useZodForm } from "@/hooks/use-zod-form";
+import { getRoleFromSession, isAdminRole, isAdvisorRole } from "@/lib/auth";
 import { clienteSchema, firmaSchema, inmobiliariaSchema } from "@/lib/schemas";
 import { Asesor, Aval, Cliente, Firma, Inmobiliaria } from "@/lib/types";
 import { toDateTimeLocal, toISOFromLocal } from "@/lib/utils";
@@ -110,7 +111,7 @@ function FormSection({ title, description, children }: FormSectionProps) {
 
 export function FirmasManager() {
   const queryClient = useQueryClient();
-  const { supabaseClient } = useSessionContext();
+  const { supabaseClient, session } = useSessionContext();
   const router = useRouter();
   const api = useApi<Firma[]>();
   const apiSingle = useApi<Firma>();
@@ -185,10 +186,20 @@ export function FirmasManager() {
     },
   });
 
+  const role = getRoleFromSession(session);
+  const isAdmin = isAdminRole(role);
+  const isAdvisor = isAdvisorRole(role);
   const { data: firmas } = useQuery({ queryKey: ["firmas"], queryFn: () => api("firmas") });
   const { data: avales } = useQuery({ queryKey: ["avales"], queryFn: () => avalesApi("avales") });
   const { data: clientes } = useQuery({ queryKey: ["clientes"], queryFn: () => clientesApi("clientes") });
   const { data: asesores } = useQuery({ queryKey: ["asesores"], queryFn: () => asesoresApi("asesores") });
+  const { data: currentAsesor, isLoading: isLoadingCurrentAsesor } = useQuery({
+    queryKey: ["asesores", "me"],
+    queryFn: () => asesorSingleApi("asesores/me"),
+    enabled: isAdvisor,
+    retry: false,
+    staleTime: 60 * 1000,
+  });
   const { data: inmobiliarias } = useQuery({
     queryKey: ["inmobiliarias"],
     queryFn: () => inmobiliariasApi("inmobiliarias"),
@@ -204,6 +215,8 @@ export function FirmasManager() {
   const selectedInmobiliariaId = form.watch("inmobiliaria_id");
   const selectedCliente = selectedClienteId ? clientesMap.get(selectedClienteId) ?? null : null;
   const selectedAsesor = selectedAsesorId ? asesoresMap.get(selectedAsesorId) ?? null : null;
+  const advisorLocked = isAdvisor && Boolean(currentAsesor);
+  const effectiveAsesor = selectedAsesor ?? currentAsesor ?? null;
   const selectedInmobiliaria = selectedInmobiliariaId ? inmobiliariasMap.get(selectedInmobiliariaId) ?? null : null;
 
   useEffect(() => {
@@ -223,6 +236,14 @@ export function FirmasManager() {
     const match = asesores?.find((asesor) => asesor.nombre === currentName);
     setSelectedAsesorId(match?.id ?? "");
   }, [dialogOpen, asesores, form]);
+
+  useEffect(() => {
+    if (!advisorLocked || !currentAsesor) return;
+    setSelectedAsesorId(currentAsesor.id);
+    if (form.getValues("asesor_nombre") !== currentAsesor.nombre) {
+      form.setValue("asesor_nombre", currentAsesor.nombre, { shouldDirty: false });
+    }
+  }, [advisorLocked, currentAsesor, form]);
 
   const handleClienteDialogClose = () => {
     setClienteDialogOpen(false);
@@ -381,9 +402,12 @@ export function FirmasManager() {
   const handleClose = () => {
     setDialogOpen(false);
     setEditing(null);
-    form.reset(defaultValues);
+    form.reset({
+      ...defaultValues,
+      asesor_nombre: advisorLocked && currentAsesor ? currentAsesor.nombre : defaultValues.asesor_nombre,
+    });
     resetState();
-    setSelectedAsesorId("");
+    setSelectedAsesorId(advisorLocked && currentAsesor ? currentAsesor.id : "");
   };
 
   const sanitizeFileName = (filename: string) => {
@@ -676,40 +700,59 @@ export function FirmasManager() {
                       <FormField control={form.control} name="asesor_nombre">
                         {(field) => (
                           <div className="space-y-3">
-                            <div className="flex flex-col gap-2 sm:flex-row">
-                              <Select
-                                value={selectedAsesorId || NO_ASESOR_SELECTION}
-                                onValueChange={(value) => {
-                                  if (value === NO_ASESOR_SELECTION) {
-                                    setSelectedAsesorId("");
-                                    field.onChange("");
-                                    return;
-                                  }
-                                  setSelectedAsesorId(value);
-                                  const asesor = asesoresMap.get(value);
-                                  field.onChange(asesor?.nombre ?? "");
-                                }}
-                              >
-                                <SelectTrigger className="sm:w-64">
-                                  <SelectValue placeholder="Selecciona asesor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value={NO_ASESOR_SELECTION}>Sin seleccionar</SelectItem>
-                                  {(asesores ?? []).map((asesor) => (
-                                    <SelectItem key={asesor.id} value={asesor.id}>
-                                      {asesor.nombre}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Button type="button" variant="outline" size="sm" onClick={() => setAsesorDialogOpen(true)}>
-                                Registrar nuevo asesor
-                              </Button>
-                            </div>
-                            {selectedAsesor ? (
+                            {advisorLocked ? (
+                              <div className="rounded-2xl border border-dashed border-border/60 bg-emerald-50/70 p-3 text-xs text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                <p className="font-semibold text-sm text-foreground">Asesor asignado</p>
+                                <p className="text-base font-medium text-foreground">{currentAsesor?.nombre}</p>
+                                <p>{currentAsesor?.telefono || "Sin teléfono registrado"}</p>
+                                <p className="mt-1 text-[11px] text-muted-foreground">
+                                  Esta cuenta registrará firmas únicamente a tu nombre.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-2 sm:flex-row">
+                                <Select
+                                  value={selectedAsesorId || NO_ASESOR_SELECTION}
+                                  onValueChange={(value) => {
+                                    if (value === NO_ASESOR_SELECTION) {
+                                      setSelectedAsesorId("");
+                                      field.onChange("");
+                                      return;
+                                    }
+                                    setSelectedAsesorId(value);
+                                    const asesor = asesoresMap.get(value);
+                                    field.onChange(asesor?.nombre ?? "");
+                                  }}
+                                  disabled={advisorLocked}
+                                >
+                                  <SelectTrigger className="sm:w-64">
+                                    <SelectValue placeholder="Selecciona asesor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={NO_ASESOR_SELECTION}>Sin seleccionar</SelectItem>
+                                    {(asesores ?? []).map((asesor) => (
+                                      <SelectItem key={asesor.id} value={asesor.id}>
+                                        {asesor.nombre}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {isAdmin ? (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setAsesorDialogOpen(true)}
+                                  >
+                                    Registrar nuevo asesor
+                                  </Button>
+                                ) : null}
+                              </div>
+                            )}
+                            {effectiveAsesor ? (
                               <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                                <p className="font-semibold text-foreground">{selectedAsesor.nombre}</p>
-                                <p>{selectedAsesor.telefono || "Sin teléfono"}</p>
+                                <p className="font-semibold text-foreground">{effectiveAsesor.nombre}</p>
+                                <p>{effectiveAsesor.telefono || "Sin teléfono"}</p>
                               </div>
                             ) : null}
                             <div className="space-y-2">
@@ -717,13 +760,22 @@ export function FirmasManager() {
                               <Input
                                 placeholder="Quien gestionó la firma"
                                 {...field}
-                                disabled={Boolean(selectedAsesorId)}
-                                onChange={(event) => {
-                                  setSelectedAsesorId("");
-                                  field.onChange(event.target.value);
-                                }}
+                                disabled={advisorLocked || Boolean(selectedAsesorId)}
+                                readOnly={advisorLocked}
+                                onChange={
+                                  advisorLocked
+                                    ? undefined
+                                    : (event) => {
+                                        setSelectedAsesorId("");
+                                        field.onChange(event.target.value);
+                                      }
+                                }
                               />
-                              {selectedAsesorId ? (
+                              {advisorLocked ? (
+                                <p className="text-xs text-muted-foreground">
+                                  Contacta a un administrador si necesitas actualizar tu información.
+                                </p>
+                              ) : selectedAsesorId ? (
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -738,6 +790,11 @@ export function FirmasManager() {
                                   Escribe el nombre si aún no tienes al asesor registrado.
                                 </p>
                               )}
+                              {isAdvisor && !advisorLocked && !isLoadingCurrentAsesor ? (
+                                <p className="text-xs text-destructive">
+                                  No encontramos un asesor vinculado a tu cuenta. Solicita apoyo a un administrador.
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         )}
@@ -1108,30 +1165,32 @@ export function FirmasManager() {
           </form>
         </DialogContent>
       </Dialog>
-      <Dialog
-        open={asesorDialogOpen}
-        onOpenChange={(open) => (open ? setAsesorDialogOpen(true) : handleAsesorDialogClose())}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Registrar asesor</DialogTitle>
-            <DialogDescription>Da de alta al asesor para reutilizarlo en firmas futuras.</DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={asesorForm.handleSubmit((values) => asesorMutation.mutate(values))}>
-            <FormField control={asesorForm.control} name="nombre" label="Nombre completo">
-              {(field) => <Input placeholder="Nombre y apellidos" {...field} />}
-            </FormField>
-            <FormField control={asesorForm.control} name="telefono" label="Teléfono">
-              {(field) => <Input type="tel" placeholder="33..." {...field} />}
-            </FormField>
-            <DialogFooter>
-              <Button type="submit" disabled={asesorMutation.isPending}>
-                {asesorMutation.isPending ? "Guardando..." : "Registrar"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {isAdmin ? (
+        <Dialog
+          open={asesorDialogOpen}
+          onOpenChange={(open) => (open ? setAsesorDialogOpen(true) : handleAsesorDialogClose())}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Registrar asesor</DialogTitle>
+              <DialogDescription>Da de alta al asesor para reutilizarlo en firmas futuras.</DialogDescription>
+            </DialogHeader>
+            <form className="space-y-4" onSubmit={asesorForm.handleSubmit((values) => asesorMutation.mutate(values))}>
+              <FormField control={asesorForm.control} name="nombre" label="Nombre completo">
+                {(field) => <Input placeholder="Nombre y apellidos" {...field} />}
+              </FormField>
+              <FormField control={asesorForm.control} name="telefono" label="Teléfono">
+                {(field) => <Input type="tel" placeholder="33..." {...field} />}
+              </FormField>
+              <DialogFooter>
+                <Button type="submit" disabled={asesorMutation.isPending}>
+                  {asesorMutation.isPending ? "Guardando..." : "Registrar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : null}
       <Dialog
         open={inmobiliariaDialogOpen}
         onOpenChange={(open) => (open ? setInmobiliariaDialogOpen(true) : handleInmobiliariaDialogClose())}

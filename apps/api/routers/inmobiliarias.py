@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
-from apps.api.core.auth import require_admin
+from apps.api.core.auth import require_admin, require_admin_or_asesor
 from apps.api.db.supabase_client import get_client, handle_response
 from apps.api.models.schemas import Inmobiliaria, InmobiliariaCreate, InmobiliariaUpdate
 
@@ -13,7 +13,9 @@ router = APIRouter(prefix="/inmobiliarias", tags=["inmobiliarias"])
 
 
 @router.get("", response_model=List[Inmobiliaria])
-async def list_inmobiliarias(q: str | None = Query(default=None), _: dict = Depends(require_admin)) -> List[Inmobiliaria]:
+async def list_inmobiliarias(
+    q: str | None = Query(default=None), _: dict = Depends(require_admin_or_asesor)
+) -> List[Inmobiliaria]:
     client = get_client()
     query = client.table("inmobiliarias").select("*")
     if q:

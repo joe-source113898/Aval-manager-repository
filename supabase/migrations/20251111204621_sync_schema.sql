@@ -70,6 +70,7 @@ create table if not exists public.clientes (
   notas text,
   referencias_familiares jsonb not null default '[]'::jsonb,
   referencias_conocidos jsonb not null default '[]'::jsonb,
+  creado_por uuid references public.usuarios (id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -81,6 +82,7 @@ create unique index if not exists clientes_numero_identificacion_idx on public.c
 create table if not exists public.asesores (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
+  email text,
   telefono text,
   pago_comision numeric(12,2) not null default 0,
   firmas_count integer not null default 0,
@@ -456,6 +458,59 @@ drop policy if exists clientes_admin_manage on public.clientes;
 create policy clientes_admin_manage on public.clientes
   for all using (auth.role() = 'service_role' or public.is_admin())
   with check (auth.role() = 'service_role' or public.is_admin());
+drop policy if exists clientes_asesor_select on public.clientes;
+create policy clientes_asesor_select on public.clientes
+  for select using (
+    auth.role() = 'service_role'
+    or public.is_admin()
+    or (
+      public.is_asesor()
+      and (
+        public.clientes.creado_por = auth.uid()
+        or exists (
+          select 1
+          from public.firmas f
+          where f.cliente_id = public.clientes.id
+            and f.creado_por = auth.uid()
+        )
+      )
+    )
+  );
+drop policy if exists clientes_asesor_insert on public.clientes;
+create policy clientes_asesor_insert on public.clientes
+  for insert with check (public.is_admin() or public.is_asesor());
+drop policy if exists clientes_asesor_update on public.clientes;
+create policy clientes_asesor_update on public.clientes
+  for update using (
+    public.is_admin()
+    or (
+      public.is_asesor()
+      and (
+        public.clientes.creado_por = auth.uid()
+        or exists (
+          select 1
+          from public.firmas f
+          where f.cliente_id = public.clientes.id
+            and f.creado_por = auth.uid()
+        )
+      )
+    )
+  )
+  with check (
+    public.is_admin()
+    or (
+      public.is_asesor()
+      and (
+        public.clientes.creado_por = auth.uid()
+        or exists (
+          select 1
+          from public.firmas f
+          where f.cliente_id = public.clientes.id
+            and f.creado_por = auth.uid()
+        )
+      )
+    )
+  );
 
 create policy asesores_admin_manage on public.asesores
   for all using (auth.role() = 'service_role' or public.is_admin())
@@ -483,6 +538,30 @@ drop policy if exists firmas_admin_manage on public.firmas;
 create policy firmas_admin_manage on public.firmas
   for all using (auth.role() = 'service_role' or public.is_admin())
   with check (auth.role() = 'service_role' or public.is_admin());
+drop policy if exists firmas_asesor_select on public.firmas;
+create policy firmas_asesor_select on public.firmas
+  for select using (
+    auth.role() = 'service_role'
+    or public.is_admin()
+    or (
+      public.is_asesor()
+      and (
+        creado_por = auth.uid()
+        or (
+          cliente_id is not null
+          and exists (
+            select 1 from public.firmas f2
+            where f2.cliente_id = public.firmas.cliente_id
+              and f2.creado_por = auth.uid()
+          )
+        )
+      )
+    )
+  );
+drop policy if exists firmas_asesor_modify on public.firmas;
+create policy firmas_asesor_modify on public.firmas
+  for update using (public.is_admin() or (public.is_asesor() and creado_por = auth.uid()))
+  with check (public.is_admin() or (public.is_asesor() and creado_por = auth.uid()));
 
 drop policy if exists pagos_servicio_admin_manage on public.pagos_servicio;
 
@@ -590,9 +669,9 @@ begin
   if meta_role = 'asesor' then
     meta_nombre := coalesce(meta ->> 'nombre', new.email);
     meta_telefono := meta ->> 'telefono';
-    insert into public.asesores (nombre, telefono, pago_comision, firmas_count, user_id)
-    values (meta_nombre, meta_telefono, 0, 0, new.id)
-    on conflict (user_id) do update set nombre = excluded.nombre, telefono = excluded.telefono;
+    insert into public.asesores (nombre, telefono, pago_comision, firmas_count, user_id, email)
+    values (meta_nombre, meta_telefono, 0, 0, new.id, new.email)
+    on conflict (user_id) do update set nombre = excluded.nombre, telefono = excluded.telefono, email = excluded.email;
   end if;
   return new;
 end;

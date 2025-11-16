@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.encoders import jsonable_encoder
 
-from apps.api.core.auth import require_admin
+from apps.api.core.auth import require_admin_or_asesor
 from apps.api.db.supabase_client import get_client, handle_response
 from apps.api.models.schemas import AvalVeto, AvalVetoCreate, AvalVetoUpdate
 
@@ -19,7 +19,7 @@ async def list_vetos_avales(
     aval_id: UUID | None = Query(default=None),
     inmobiliaria_id: UUID | None = Query(default=None),
     estatus: str | None = Query(default=None),
-    _: dict = Depends(require_admin),
+    user: dict = Depends(require_admin_or_asesor),
 ) -> List[AvalVeto]:
     client = get_client()
     query = client.table("vetos_avales").select("*")
@@ -29,16 +29,22 @@ async def list_vetos_avales(
         query = query.eq("inmobiliaria_id", str(inmobiliaria_id))
     if estatus:
         query = query.eq("estatus", estatus)
+    if user.get("role") == "asesor":
+        query = query.eq("registrado_por", str(user.get("id")))
     response = query.order("created_at", desc=True).execute()
     return [AvalVeto(**row) for row in handle_response(response) or []]
 
 
 @router.post("", response_model=AvalVeto, status_code=status.HTTP_201_CREATED)
-async def create_veto_aval(payload: AvalVetoCreate, user: dict = Depends(require_admin)) -> AvalVeto:
+async def create_veto_aval(payload: AvalVetoCreate, user: dict = Depends(require_admin_or_asesor)) -> AvalVeto:
     client = get_client()
     data_payload = jsonable_encoder(payload, exclude_none=True)
-    if not data_payload.get("registrado_por") and user.get("id"):
-        data_payload["registrado_por"] = str(user["id"])
+    user_id = user.get("id")
+    role = user.get("role")
+    if role == "asesor" and user_id:
+        data_payload["registrado_por"] = str(user_id)
+    elif user_id and not data_payload.get("registrado_por"):
+        data_payload["registrado_por"] = str(user_id)
     if data_payload.get("estatus") == "limpio" and not data_payload.get("limpio_at"):
         data_payload["limpio_at"] = datetime.now(timezone.utc).isoformat()
     response = client.table("vetos_avales").insert(data_payload).execute()
@@ -49,13 +55,18 @@ async def create_veto_aval(payload: AvalVetoCreate, user: dict = Depends(require
 
 
 @router.put("/{veto_id}", response_model=AvalVeto)
-async def update_veto_aval(veto_id: UUID, payload: AvalVetoUpdate, _: dict = Depends(require_admin)) -> AvalVeto:
+async def update_veto_aval(
+    veto_id: UUID, payload: AvalVetoUpdate, user: dict = Depends(require_admin_or_asesor)
+) -> AvalVeto:
     client = get_client()
     data_payload = {k: v for k, v in jsonable_encoder(payload, exclude_none=True).items() if v is not None}
     if data_payload.get("estatus") == "limpio" and not data_payload.get("limpio_at"):
         data_payload["limpio_at"] = datetime.now(timezone.utc).isoformat()
     data_payload["updated_at"] = datetime.now(timezone.utc).isoformat()
-    response = client.table("vetos_avales").update(data_payload).eq("id", str(veto_id)).execute()
+    query = client.table("vetos_avales").update(data_payload).eq("id", str(veto_id))
+    if user.get("role") == "asesor":
+        query = query.eq("registrado_por", str(user.get("id")))
+    response = query.execute()
     data = handle_response(response)
     if not data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Veto no encontrado")
@@ -63,7 +74,10 @@ async def update_veto_aval(veto_id: UUID, payload: AvalVetoUpdate, _: dict = Dep
 
 
 @router.delete("/{veto_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_veto_aval(veto_id: UUID, _: dict = Depends(require_admin)) -> Response:
+async def delete_veto_aval(veto_id: UUID, user: dict = Depends(require_admin_or_asesor)) -> Response:
     client = get_client()
-    client.table("vetos_avales").delete().eq("id", str(veto_id)).execute()
+    query = client.table("vetos_avales").delete().eq("id", str(veto_id))
+    if user.get("role") == "asesor":
+        query = query.eq("registrado_por", str(user.get("id")))
+    query.execute()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

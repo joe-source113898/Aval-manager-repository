@@ -60,7 +60,7 @@ export function LoginForm({ intent = "admin" }: LoginFormProps) {
     router.replace("/calendario");
   });
 
-  const buttonLabel = intent === "asesor" ? "Entrar a la vista pública" : "Iniciar sesión";
+  const buttonLabel = intent === "asesor" ? "Iniciar sesión" : "Iniciar sesión";
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
