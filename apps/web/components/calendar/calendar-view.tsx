@@ -53,6 +53,26 @@ const formatTimeRange = (start: Date, end: Date) => {
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
+const SMALL_WORDS = new Set(["de", "del", "la", "el"]);
+
+const formatLongDate = (date: Date) => {
+  const formatted = date.toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return formatted
+    .split(" ")
+    .map((word) => {
+      const pure = word.toLowerCase();
+      if (!pure || SMALL_WORDS.has(pure) || /^\d+$/.test(pure)) {
+        return pure;
+      }
+      return pure.charAt(0).toUpperCase() + pure.slice(1);
+    })
+    .join(" ");
+};
+
 export function CalendarView({ events, availability = [] }: CalendarViewProps) {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") {
@@ -192,11 +212,7 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
         weekday: "long",
       })
     );
-    const longDate = selectedDate.toLocaleDateString("es-MX", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    const longDate = formatLongDate(selectedDate);
 
     return (
       <div className="space-y-4 rounded-3xl border border-border bg-card/90 p-4 shadow-sm">
@@ -211,7 +227,7 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
           </button>
           <div className="flex flex-1 flex-col items-center text-center">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{weekday}</span>
-            <span className="text-2xl font-bold capitalize leading-tight">{longDate}</span>
+            <span className="text-2xl font-bold leading-tight">{longDate}</span>
           </div>
           <button
             type="button"
