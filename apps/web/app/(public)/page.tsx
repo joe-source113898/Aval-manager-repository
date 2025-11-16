@@ -5,6 +5,27 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getServerSupabase } from "@/lib/supabase/server";
 
+const quickActions = [
+  {
+    href: "/documentos",
+    label: "Documentos del aval en turno",
+    description: "Consulta todos los PDF del aval activo desde tu teléfono.",
+    icon: FileText,
+  },
+  {
+    href: "/calendario",
+    label: "Calendario de firmas",
+    description: "Revisa la agenda del día y abre la ubicación en Maps.",
+    icon: CalendarDays,
+  },
+  {
+    href: "/lista-negra",
+    label: "Lista negra",
+    description: "Valida vetos recientes antes de avanzar con un cliente.",
+    icon: ListChecks,
+  },
+];
+
 export default async function HomePage() {
   const supabase = getServerSupabase();
   const { data } = await supabase.auth.getSession();
@@ -15,50 +36,92 @@ export default async function HomePage() {
   const primaryCtaHref = isLoggedIn ? "/admin" : "/login";
 
   return (
-    <div className="space-y-16 pb-16">
-      <section className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-background to-background p-8 text-center shadow-sm md:p-12">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Gestión integral de avales
-          </span>
+    <div className="space-y-12 pb-16">
+      <section className="space-y-4 md:hidden">
+        <div className="rounded-3xl border border-border bg-gradient-to-br from-primary/15 via-background to-background p-5 shadow-sm">
           <div className="space-y-3">
-            <h1 className="text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
-              Coordina avales, firmas y pagos sin fricción.
-            </h1>
-            <p className="text-base text-muted-foreground sm:text-lg">
-              Programa firmas, comparte expedientes y sigue cada pago desde un solo panel. Aval-manager concentra la
-              operación de tu equipo para que nunca pierdas el control.
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+              <ShieldCheck className="h-3 w-3" />
+              Aval-manager PWA
+            </div>
+            <h1 className="text-2xl font-bold leading-tight">Todo el control desde tu teléfono.</h1>
+            <p className="text-sm text-muted-foreground">
+              Accede rápido al panel, documentos, calendario y lista negra sin saturar la pantalla.
             </p>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-            <Link href={primaryCtaHref} className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}>
-              {primaryCtaLabel}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+          <Link
+            href={primaryCtaHref}
+            className={cn(buttonVariants({ size: "lg" }), "mt-4 w-full justify-center gap-2")}
+          >
+            {primaryCtaLabel}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid gap-3">
+          {quickActions.map((action) => (
             <Link
-              href="/documentos"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+              key={action.href}
+              href={action.href}
+              className="flex items-center gap-4 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-sm transition hover:bg-card"
             >
-              Documentos del aval
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <action.icon className="h-5 w-5" />
+              </span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold leading-tight">{action.label}</p>
+                <p className="text-xs text-muted-foreground">{action.description}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </Link>
-            <Link
-              href="/calendario"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              Ver calendario público
-            </Link>
-            <Link
-              href="/lista-negra"
-              className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              Lista negra pública
-            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="hidden md:block">
+        <div className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-background to-background p-8 text-center shadow-sm md:p-12">
+          <div className="mx-auto max-w-3xl space-y-6">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Gestión integral de avales
+            </span>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
+                Coordina avales, firmas y pagos sin fricción.
+              </h1>
+              <p className="text-base text-muted-foreground sm:text-lg">
+                Programa firmas, comparte expedientes y sigue cada pago desde un solo panel. Aval-manager concentra la
+                operación de tu equipo para que nunca pierdas el control.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+              <Link href={primaryCtaHref} className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}>
+                {primaryCtaLabel}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/documentos"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+              >
+                Documentos del aval
+              </Link>
+              <Link
+                href="/calendario"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+              >
+                Ver calendario público
+              </Link>
+              <Link
+                href="/lista-negra"
+                className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+              >
+                Lista negra pública
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <section className="hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-4">
         {[
           {
             icon: ShieldCheck,
@@ -92,7 +155,7 @@ export default async function HomePage() {
         ))}
       </section>
 
-      <section className="grid items-center gap-10 rounded-4xl border border-border bg-gradient-to-br from-muted/60 via-background to-background p-8 md:grid-cols-[1.2fr_0.8fr] md:p-12">
+      <section className="hidden items-center gap-10 rounded-4xl border border-border bg-gradient-to-br from-muted/60 via-background to-background p-8 md:grid-cols-[1.2fr_0.8fr] md:p-12 lg:grid">
         <div className="space-y-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">Onboarding guiado</p>

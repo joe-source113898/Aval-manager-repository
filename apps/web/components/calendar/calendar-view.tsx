@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import FullCalendar from "@fullcalendar/react";
 import { EventClickArg, EventContentArg } from "@fullcalendar/core";
@@ -16,6 +16,20 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ events, availability = [] }: CalendarViewProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
+    const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    setIsMobile(mediaQuery.matches);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
   const calendarEvents = useMemo(
     () =>
       events.map((firma) => {
@@ -79,6 +93,20 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
     );
   };
 
+  const headerToolbar = isMobile
+    ? {
+        left: "prev,next",
+        center: "title",
+        right: "today",
+      }
+    : {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      };
+
+  const initialView = isMobile ? "timeGridDay" : "dayGridMonth";
+
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm">
       <Head>
@@ -87,13 +115,10 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.19/main.min.css" />
       </Head>
       <FullCalendar
+        key={initialView}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        headerToolbar={{
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
-        }}
-        initialView="dayGridMonth"
+        headerToolbar={headerToolbar}
+        initialView={initialView}
         locale={esLocale}
         height="auto"
         events={composedEvents}
@@ -112,7 +137,7 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
         }}
         slotMinTime="07:00:00"
         slotMaxTime="21:00:00"
-        dayMaxEvents
+        dayMaxEvents={!isMobile}
         displayEventEnd
         buttonText={{
           today: "Hoy",
