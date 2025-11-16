@@ -18,6 +18,9 @@ begin
   if not exists (select 1 from pg_type where typname = 'estado_firma_enum') then
     create type public.estado_firma_enum as enum ('programada', 'realizada', 'reprogramada', 'cancelada');
   end if;
+  if not exists (select 1 from pg_type where typname = 'user_role_enum') then
+    create type public.user_role_enum as enum ('admin', 'asesor', 'service_role');
+  end if;
 end$$;
 
 -- Tables ----------------------------------------------------------------------
@@ -47,6 +50,13 @@ create table if not exists public.avales (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.usuarios (
+  id uuid primary key,
+  email text unique,
+  rol public.user_role_enum not null default 'admin',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.clientes (
   id uuid primary key default gen_random_uuid(),
   nombre_completo text not null,
@@ -56,6 +66,17 @@ create table if not exists public.clientes (
   notas text,
   referencias_familiares jsonb not null default '[]'::jsonb,
   referencias_conocidos jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.asesores (
+  id uuid primary key default gen_random_uuid(),
+  nombre text not null,
+  telefono text,
+  pago_comision numeric(12,2) not null default 0,
+  firmas_count integer not null default 0,
+  user_id uuid unique references public.usuarios (id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -340,13 +361,6 @@ alter table public.clientes_morosidad
   drop column if exists monto_pendiente,
   drop column if exists evidencia_documento_id;
 
-create table if not exists public.usuarios (
-  id uuid primary key,
-  email text unique,
-  rol text not null default 'admin',
-  created_at timestamptz not null default now()
-);
-
 -- Views -----------------------------------------------------------------------
 create or replace view public.vw_firmas_publicas as
 select
@@ -374,6 +388,7 @@ from public.documentos d;
 -- Policies --------------------------------------------------------------------
 alter table public.avales enable row level security;
 alter table public.clientes enable row level security;
+alter table public.asesores enable row level security;
 alter table public.propiedades enable row level security;
 alter table public.contratos enable row level security;
 alter table public.pagos enable row level security;
@@ -412,6 +427,9 @@ create policy clientes_admin_manage on public.clientes
   for all using (auth.role() = 'service_role' or public.is_admin())
   with check (auth.role() = 'service_role' or public.is_admin());
 
+create policy asesores_admin_manage on public.asesores
+  for all using (auth.role() = 'service_role' or public.is_admin())
+  with check (auth.role() = 'service_role' or public.is_admin());
 drop policy if exists propiedades_admin_manage on public.propiedades;
 
 create policy propiedades_admin_manage on public.propiedades
@@ -495,16 +513,57 @@ create policy firmas_public_select on public.firmas
   for select using (auth.role() = 'anon');
 
 -- Trigger to register new auth users -------------------------------------------------
-create or replace function public.handle_new_user()
+create or replace function public.sync_user_metadata_role()
 returns trigger
 language plpgsql
 security definer
 set search_path = public, auth
 as $$
 begin
+  update auth.users
+  set
+    raw_user_meta_data = jsonb_set(coalesce(raw_user_meta_data, '{}'::jsonb), '{role}', to_jsonb(new.rol::text), true),
+    user_metadata = jsonb_set(coalesce(user_metadata, '{}'::jsonb), '{role}', to_jsonb(new.rol::text), true)
+  where id = new.id;
+  return new;
+end;
+$$;
+
+drop trigger if exists sync_user_metadata_role on public.usuarios;
+create trigger sync_user_metadata_role
+  after insert or update on public.usuarios
+  for each row
+  execute procedure public.sync_user_metadata_role();
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  meta_role text;
+  meta jsonb;
+  meta_nombre text;
+  meta_telefono text;
+begin
+  meta := coalesce(new.raw_user_meta_data, '{}'::jsonb);
+  meta_role := coalesce(meta ->> 'role', coalesce(new.raw_app_meta_data, '{}'::jsonb) ->> 'role', 'admin');
+  if meta_role not in ('admin', 'asesor', 'service_role') then
+    meta_role := 'admin';
+  end if;
+
   insert into public.usuarios (id, email, rol)
-  values (new.id, new.email, 'admin')
-  on conflict (id) do nothing;
+  values (new.id, new.email, meta_role::public.user_role_enum)
+  on conflict (id) do update set email = excluded.email, rol = excluded.rol;
+
+  if meta_role = 'asesor' then
+    meta_nombre := coalesce(meta ->> 'nombre', new.email);
+    meta_telefono := meta ->> 'telefono';
+    insert into public.asesores (nombre, telefono, pago_comision, firmas_count, user_id)
+    values (meta_nombre, meta_telefono, 0, 0, new.id)
+    on conflict (user_id) do update set nombre = excluded.nombre, telefono = excluded.telefono;
+  end if;
   return new;
 end;
 $$;

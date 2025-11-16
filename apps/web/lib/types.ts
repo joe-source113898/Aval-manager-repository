@@ -219,6 +219,7 @@ export interface Asesor {
   telefono?: string | null;
   pago_comision: number;
   firmas_count: number;
+  user_id?: string | null;
   created_at: string;
   updated_at: string;
 }

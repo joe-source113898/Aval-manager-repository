@@ -78,6 +78,7 @@ export function AsesoresManager() {
       telefono: "",
       pago_comision: 0,
       firmas_count: 0,
+      user_id: "",
     },
   });
 
@@ -89,6 +90,7 @@ export function AsesoresManager() {
       telefono: "",
       pago_comision: 0,
       firmas_count: 0,
+      user_id: "",
     });
   };
 
@@ -99,6 +101,7 @@ export function AsesoresManager() {
         telefono: values.telefono?.trim() || null,
         pago_comision: Number(values.pago_comision),
         firmas_count: Number(values.firmas_count),
+        user_id: values.user_id?.trim() ? values.user_id.trim() : null,
       };
       if (editing) {
         return apiSingle(`asesores/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) });
@@ -120,6 +123,7 @@ export function AsesoresManager() {
       telefono: asesor.telefono ?? "",
       pago_comision: Number(asesor.pago_comision),
       firmas_count: Number(asesor.firmas_count),
+      user_id: asesor.user_id ?? "",
     });
     setDialogOpen(true);
   };
@@ -138,6 +142,20 @@ export function AsesoresManager() {
   const columns: ColumnDef<Asesor>[] = [
     { accessorKey: "nombre", header: "Nombre" },
     { accessorKey: "telefono", header: "Teléfono" },
+    {
+      accessorKey: "user_id",
+      header: "Acceso",
+      cell: ({ row }) =>
+        row.original.user_id ? (
+          <Badge variant="secondary" className="text-xs">
+            Vinculado
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs">
+            Sin usuario
+          </Badge>
+        ),
+    },
     {
       accessorKey: "pago_comision",
       header: "Pago / Comisión",
@@ -223,6 +241,16 @@ export function AsesoresManager() {
                     placeholder={editing ? "Define total" : "Se calculará automáticamente"}
                     {...field}
                   />
+                )}
+              </FormField>
+              <FormField control={form.control} name="user_id" label="Usuario vinculado (UID de Supabase)">
+                {(field) => (
+                  <div className="space-y-1.5">
+                    <Input placeholder="00000000-0000-0000-0000-000000000000" {...field} />
+                    <p className="text-xs text-muted-foreground">
+                      Opcional. Enlaza al asesor con un usuario autenticado para habilitar el acceso público.
+                    </p>
+                  </div>
                 )}
               </FormField>
               <DialogFooter>

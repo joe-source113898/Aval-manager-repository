@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
+import { getRoleFromSession, isAdminRole } from "@/lib/auth";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -20,11 +21,22 @@ export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { session, supabaseClient } = useSessionContext();
-  const [authState, setAuthState] = useState<"signed-in" | "signed-out" | "processing">(session ? "signed-in" : "signed-out");
+  const [signingOut, setSigningOut] = useState(false);
+  const [role, setRole] = useState(() => getRoleFromSession(session));
 
   useEffect(() => {
-    setAuthState(session ? "signed-in" : "signed-out");
+    setRole(getRoleFromSession(session));
   }, [session]);
+
+  const isAdmin = isAdminRole(role);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await supabaseClient.auth.signOut();
+    setSigningOut(false);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur">
@@ -49,7 +61,7 @@ export function SiteHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {session ? (
+          {session && isAdmin ? (
             <Link
               href="/admin"
               className="hidden rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-primary hover:text-primary sm:inline"
@@ -58,24 +70,34 @@ export function SiteHeader() {
             </Link>
           ) : null}
           <ThemeToggle />
-          <button
-            type="button"
-            disabled={authState === "processing"}
-            onClick={async () => {
-              if (authState === "signed-in") {
-                setAuthState("processing");
-                await supabaseClient.auth.signOut();
-                router.push("/");
-                router.refresh();
-              } else if (authState === "signed-out") {
-                router.push("/login");
-              }
-            }}
-            className={cn(buttonVariants({ variant: "secondary", size: "sm" }),
-              authState === "processing" ? "opacity-70" : null)}
-          >
-            {authState === "signed-in" ? "Cerrar sesión" : authState === "processing" ? "Cerrando…" : "Iniciar sesión"}
-          </button>
+          {session ? (
+            <button
+              type="button"
+              disabled={signingOut}
+              onClick={handleSignOut}
+              className={cn(buttonVariants({ variant: "secondary", size: "sm" }), signingOut ? "opacity-70" : null)}
+            >
+              {signingOut ? "Cerrando…" : "Cerrar sesión"}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login?view=asesor"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
+              >
+                Acceso asesores
+              </Link>
+              <Link
+                href="/registro-asesor"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
+              >
+                Registro asesor
+              </Link>
+              <Link href="/login?view=admin" className={buttonVariants({ variant: "secondary", size: "sm" })}>
+                Acceso admin
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>

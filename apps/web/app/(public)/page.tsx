@@ -4,6 +4,7 @@ import { ArrowRight, CalendarDays, FileText, ListChecks, ShieldCheck } from "luc
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getRoleFromSession, isAdminRole, isAdvisorRole } from "@/lib/auth";
 
 const quickActions = [
   {
@@ -30,10 +31,19 @@ export default async function HomePage() {
   const supabase = getServerSupabase();
   const { data } = await supabase.auth.getSession();
   const session = data.session;
-  const isLoggedIn = Boolean(session);
+  const role = getRoleFromSession(session);
+  const isAdmin = isAdminRole(role);
+  const isAdvisor = isAdvisorRole(role);
 
-  const primaryCtaLabel = isLoggedIn ? "Ir al panel" : "Iniciar sesión";
-  const primaryCtaHref = isLoggedIn ? "/admin" : "/login";
+  const adminAction = {
+    label: isAdmin ? "Ir al panel administrativo" : "Acceso super administrador",
+    href: isAdmin ? "/admin" : "/login?view=admin",
+  };
+
+  const advisorAction = {
+    label: isAdvisor ? "Ir al calendario público" : "Acceso asesores",
+    href: isAdvisor ? "/calendario" : "/login?view=asesor",
+  };
 
   return (
     <div className="space-y-12 pb-16">
@@ -49,13 +59,22 @@ export default async function HomePage() {
               Accede rápido al panel, documentos, calendario y lista negra sin saturar la pantalla.
             </p>
           </div>
-          <Link
-            href={primaryCtaHref}
-            className={cn(buttonVariants({ size: "lg" }), "mt-4 w-full justify-center gap-2")}
-          >
-            {primaryCtaLabel}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Link
+              href={adminAction.href}
+              className={cn(buttonVariants({ size: "lg" }), "justify-center gap-2")}
+            >
+              {adminAction.label}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href={advisorAction.href}
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "justify-center gap-2")}
+            >
+              {advisorAction.label}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
         <div className="grid gap-3">
           {quickActions.map((action) => (
@@ -94,8 +113,18 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-              <Link href={primaryCtaHref} className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}>
-                {primaryCtaLabel}
+              <Link
+                href={adminAction.href}
+                className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+              >
+                {adminAction.label}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href={advisorAction.href}
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+              >
+                {advisorAction.label}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -179,8 +208,18 @@ export default async function HomePage() {
             ))}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link href={primaryCtaHref} className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}>
-              {primaryCtaLabel}
+            <Link
+              href={adminAction.href}
+              className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+            >
+              {adminAction.label}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href={advisorAction.href}
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
+            >
+              {advisorAction.label}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link

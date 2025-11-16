@@ -202,6 +202,7 @@ class AsesorBase(BaseModel):
     telefono: constr(strip_whitespace=True, min_length=7) | None = None
     pago_comision: Decimal = Field(ge=0)
     firmas_count: int = Field(default=0, ge=0)
+    user_id: UUID | None = None
 
 
 class AsesorCreate(AsesorBase):
@@ -213,6 +214,7 @@ class AsesorUpdate(BaseModel):
     telefono: constr(strip_whitespace=True, min_length=7) | None = None
     pago_comision: Decimal | None = Field(default=None, ge=0)
     firmas_count: int | None = Field(default=None, ge=0)
+    user_id: UUID | None = None
 
 
 class Asesor(AsesorBase):

@@ -170,6 +170,7 @@ export const asesorSchema = z.object({
     .or(z.literal("")),
   pago_comision: z.coerce.number().min(0, "Monto inválido"),
   firmas_count: z.coerce.number().int().min(0, "Debe ser positivo"),
+  user_id: z.string().uuid("UID inválido").optional().or(z.literal("")),
 });
 
 const PAGO_SERVICIO_BASE = z.object({
