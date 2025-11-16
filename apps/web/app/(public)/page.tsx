@@ -74,6 +74,13 @@ export default async function HomePage() {
               {advisorAction.label}
               <ArrowRight className="h-4 w-4" />
             </Link>
+            <Link
+              href="/registro-asesor"
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "justify-center gap-2 sm:col-span-2")}
+            >
+              Registro asesor
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
         <div className="grid gap-3">
