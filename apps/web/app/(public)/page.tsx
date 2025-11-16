@@ -42,7 +42,7 @@ export default async function HomePage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
               <ShieldCheck className="h-3 w-3" />
-              Aval-manager PWA
+              Gestión integral de avales
             </div>
             <h1 className="text-2xl font-bold leading-tight">Todo el control desde tu teléfono.</h1>
             <p className="text-sm text-muted-foreground">
