@@ -34,11 +34,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const requestedView = Array.isArray(searchParams?.view) ? searchParams?.view[0] : searchParams?.view;
   const intent = requestedView === "asesor" ? "asesor" : "admin";
-  const heading = intent === "asesor" ? "Acceso para asesores" : "Acceso super administrador";
+  const heading = intent === "asesor" ? "Acceso para asesores" : "Acceso súper administrador";
   const description =
     intent === "asesor"
       ? "Los asesores pueden consultar documentos, calendario y lista negra desde la vista pública."
-      : "El super administrador controla el panel completo de Aval-manager.";
+      : "El súper administrador controla el panel completo de Aval-manager.";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/10 px-4 py-10">
