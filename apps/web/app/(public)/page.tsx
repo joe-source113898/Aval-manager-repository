@@ -36,7 +36,7 @@ export default async function HomePage() {
   const isAdvisor = isAdvisorRole(role);
 
   const adminAction = {
-    label: isAdmin ? "Ir al panel administrativo" : "Acceso super administrador",
+    label: isAdmin ? "Ir al panel administrativo" : "Acceso administrador",
     href: isAdmin ? "/admin" : "/login?view=admin",
   };
 
@@ -207,40 +207,10 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link
-              href={adminAction.href}
-              className={cn(buttonVariants({ size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              {adminAction.label}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href={advisorAction.href}
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              {advisorAction.label}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/documentos"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              Documentos del aval
-            </Link>
-            <Link
-              href="/calendario"
-              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              Ver calendario público
-            </Link>
-            <Link
-              href="/lista-negra"
-              className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "gap-2 flex-1 min-w-[180px]")}
-            >
-              Lista negra pública
-            </Link>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            ¿Listo para continuar? Usa el acceso correspondiente desde la parte superior o ponte en contacto con el equipo para
+            asignarte permisos adicionales.
+          </p>
         </div>
         <div className="rounded-3xl border border-dashed border-primary/50 bg-background/90 p-6 shadow-inner">
           <p className="text-sm font-semibold text-primary">Checklist previo al lanzamiento</p>

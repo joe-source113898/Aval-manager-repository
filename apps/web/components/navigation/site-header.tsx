@@ -81,6 +81,9 @@ export function SiteHeader() {
             </button>
           ) : (
             <div className="flex items-center gap-2">
+              <Link href="/login?view=admin" className={buttonVariants({ variant: "secondary", size: "sm" })}>
+                Acceso administrador
+              </Link>
               <Link
                 href="/login?view=asesor"
                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
@@ -92,9 +95,6 @@ export function SiteHeader() {
                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
               >
                 Registro asesor
-              </Link>
-              <Link href="/login?view=admin" className={buttonVariants({ variant: "secondary", size: "sm" })}>
-                Acceso admin
               </Link>
             </div>
           )}
