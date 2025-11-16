@@ -98,6 +98,9 @@ export function ClientesManager() {
     defaultValues: {
       nombre_completo: "",
       identificacion_oficial_url: "",
+      curp: "",
+      rfc: "",
+      numero_identificacion: "",
       telefono: "",
       email: "",
       notas: "",
@@ -120,6 +123,9 @@ export function ClientesManager() {
       const payload = {
         ...values,
         identificacion_oficial_url: values.identificacion_oficial_url || null,
+        curp: values.curp?.trim() || null,
+        rfc: values.rfc?.trim() || null,
+        numero_identificacion: values.numero_identificacion?.trim() || null,
         telefono: values.telefono || null,
         email: values.email || null,
         notas: values.notas || null,
@@ -166,6 +172,9 @@ export function ClientesManager() {
     form.reset({
       nombre_completo: "",
       identificacion_oficial_url: "",
+      curp: "",
+      rfc: "",
+      numero_identificacion: "",
       telefono: "",
       email: "",
       notas: "",
@@ -180,6 +189,9 @@ export function ClientesManager() {
     form.reset({
       nombre_completo: cliente.nombre_completo,
       identificacion_oficial_url: cliente.identificacion_oficial_url ?? "",
+      curp: cliente.curp ?? "",
+      rfc: cliente.rfc ?? "",
+      numero_identificacion: cliente.numero_identificacion ?? "",
       telefono: cliente.telefono ?? "",
       email: cliente.email ?? "",
       notas: cliente.notas ?? "",
@@ -233,6 +245,8 @@ export function ClientesManager() {
     { accessorKey: "nombre_completo", header: "Nombre" },
     { accessorKey: "email", header: "Correo" },
     { accessorKey: "telefono", header: "Teléfono" },
+    { accessorKey: "curp", header: "CURP" },
+    { accessorKey: "rfc", header: "RFC" },
     {
       id: "actions",
       header: "Acciones",
@@ -372,6 +386,17 @@ export function ClientesManager() {
                   {(field) => <Input {...field} />}
                 </FormField>
               </FormGrid>
+              <FormGrid>
+                <FormField control={form.control} name="curp" label="CURP">
+                  {(field) => <Input placeholder="CURP" {...field} />}
+                </FormField>
+                <FormField control={form.control} name="rfc" label="RFC">
+                  {(field) => <Input placeholder="RFC" {...field} />}
+                </FormField>
+                <FormField control={form.control} name="numero_identificacion" label="Número de identificación">
+                  {(field) => <Input placeholder="Folio de ID" {...field} />}
+                </FormField>
+              </FormGrid>
               <FormField
                 control={form.control}
                 name="identificacion_oficial_url"
@@ -503,6 +528,11 @@ export function ClientesManager() {
                 <p className="text-sm text-muted-foreground">
                   {selectedCliente.email || "Sin correo"} · {selectedCliente.telefono || "Sin teléfono"}
                 </p>
+                <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                  <p>CURP: {selectedCliente.curp || "—"}</p>
+                  <p>RFC: {selectedCliente.rfc || "—"}</p>
+                  <p>No. ID: {selectedCliente.numero_identificacion || "—"}</p>
+                </div>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Firmas registradas: {firmasDelCliente.length}
                 </p>

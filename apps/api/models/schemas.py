@@ -73,6 +73,9 @@ class ClienteReferenciaConocido(BaseModel):
 class ClienteBase(BaseModel):
     nombre_completo: str
     identificacion_oficial_url: str | None = None
+    curp: constr(strip_whitespace=True, min_length=10, max_length=20) | None = None
+    rfc: constr(strip_whitespace=True, min_length=10, max_length=20) | None = None
+    numero_identificacion: constr(strip_whitespace=True, min_length=4) | None = None
     telefono: str | None = None
     email: constr(strip_whitespace=True, min_length=3) | None = None
     notas: str | None = None
@@ -303,8 +306,40 @@ class FirmaUpdate(BaseModel):
 
 class Firma(FirmaBase):
     id: UUID
+    creado_por: UUID | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class AsesorFirmaCreate(BaseModel):
+    aval_id: UUID
+    cliente_id: UUID | None = None
+    cliente_nombre: constr(strip_whitespace=True, min_length=3)
+    cliente_curp: constr(strip_whitespace=True, min_length=10, max_length=20) | None = None
+    cliente_rfc: constr(strip_whitespace=True, min_length=10, max_length=20) | None = None
+    cliente_numero_identificacion: constr(strip_whitespace=True, min_length=4) | None = None
+    telefono: constr(strip_whitespace=True, min_length=7) | None = None
+    correo: constr(strip_whitespace=True, min_length=5, regex=EMAIL_REGEX) | None = None
+    tipo_renta: constr(strip_whitespace=True, min_length=3)
+    periodo_contrato_anios: int = Field(default=1, ge=0, le=50)
+    monto_renta: Decimal = Field(ge=0)
+    propiedad_domicilio: constr(strip_whitespace=True, min_length=3)
+    ubicacion_maps_url: HttpUrl
+    fecha_inicio: datetime
+    fecha_fin: datetime | None = None
+    canal_firma: Literal["inmobiliaria", "dueno_directo"] = "dueno_directo"
+    pago_por_servicio: Decimal = Field(default=0, ge=0)
+    notas: str | None = None
+
+
+class AsesorListaNegraCreate(BaseModel):
+    cliente_id: UUID | None = None
+    cliente_nombre: constr(strip_whitespace=True, min_length=3)
+    cliente_curp: constr(strip_whitespace=True, min_length=10, max_length=20) | None = None
+    cliente_rfc: constr(strip_whitespace=True, min_length=10, max_length=20) | None = None
+    cliente_numero_identificacion: constr(strip_whitespace=True, min_length=4) | None = None
+    motivo: str
+    motivo_tipo: Literal["moroso", "problematico"] = "moroso"
 
 
 class DisponibilidadBase(BaseModel):

@@ -41,6 +41,9 @@ export interface Cliente {
   id: string;
   nombre_completo: string;
   identificacion_oficial_url?: string | null;
+  curp?: string | null;
+  rfc?: string | null;
+  numero_identificacion?: string | null;
   telefono?: string | null;
   email?: string | null;
   notas?: string | null;
@@ -109,6 +112,7 @@ export interface Firma {
   solicitud_aval_url?: string | null;
   notas?: string | null;
   contrato_id?: string | null;
+  creado_por?: string | null;
   created_at: string;
   updated_at: string;
 }

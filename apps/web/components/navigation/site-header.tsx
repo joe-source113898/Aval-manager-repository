@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
-import { getRoleFromSession, isAdminRole } from "@/lib/auth";
+import { getRoleFromSession, isAdminRole, isAdvisorRole } from "@/lib/auth";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -29,6 +29,7 @@ export function SiteHeader() {
   }, [session]);
 
   const isAdmin = isAdminRole(role);
+  const isAdvisor = isAdvisorRole(role);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -61,14 +62,24 @@ export function SiteHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {session && isAdmin ? (
-            <Link
-              href="/admin"
-              className="hidden rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-primary hover:text-primary sm:inline"
-            >
-              Ir al panel
-            </Link>
-          ) : null}
+          <div className="hidden items-center gap-2 sm:flex">
+            {session && isAdmin ? (
+              <Link
+                href="/admin"
+                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-primary hover:text-primary"
+              >
+                Ir al panel
+              </Link>
+            ) : null}
+            {session && isAdvisor && (
+              <Link
+                href="/asesores"
+                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:border-primary hover:text-primary"
+              >
+                Portal asesores
+              </Link>
+            )}
+          </div>
           <ThemeToggle />
           {session ? (
             <button

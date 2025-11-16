@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from apps.api.core.config import get_settings
 from apps.api.routers import (
     asesores,
+    asesores_portal,
     avales,
     clientes,
     clientes_morosidad,
@@ -54,6 +55,7 @@ app.include_router(documentos.router)
 app.include_router(storage.router)
 app.include_router(vetos_avales.router)
 app.include_router(clientes_morosidad.router)
+app.include_router(asesores_portal.router)
 
 
 @app.get("/health", tags=["health"])

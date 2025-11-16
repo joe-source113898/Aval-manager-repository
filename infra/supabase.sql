@@ -3,6 +3,7 @@
 -- Extensions -----------------------------------------------------------------
 create extension if not exists "pgcrypto";
 create extension if not exists "uuid-ossp";
+create extension if not exists "btree_gist";
 
 set search_path to public, auth;
 
@@ -61,6 +62,9 @@ create table if not exists public.clientes (
   id uuid primary key default gen_random_uuid(),
   nombre_completo text not null,
   identificacion_oficial_url text,
+  curp text,
+  rfc text,
+  numero_identificacion text,
   telefono text,
   email text,
   notas text,
@@ -69,6 +73,10 @@ create table if not exists public.clientes (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create unique index if not exists clientes_curp_idx on public.clientes ((lower(curp))) where curp is not null;
+create unique index if not exists clientes_rfc_idx on public.clientes ((lower(rfc))) where rfc is not null;
+create unique index if not exists clientes_numero_identificacion_idx on public.clientes ((lower(numero_identificacion))) where numero_identificacion is not null;
 
 create table if not exists public.asesores (
   id uuid primary key default gen_random_uuid(),
@@ -140,9 +148,18 @@ create table if not exists public.firmas (
   pago_por_servicio numeric(12,2) not null default 0,
   solicitud_aval_url text,
   notas text,
+  creado_por uuid references public.usuarios (id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.firmas
+  add constraint firmas_no_overlap
+  exclude using gist (
+    aval_id with =,
+    tstzrange(fecha_inicio, fecha_fin, '[)') with &&
+  )
+  where (estado in ('programada', 'reprogramada'));
 
 create table if not exists public.pagos_cortes (
   id uuid primary key default gen_random_uuid(),
@@ -283,6 +300,19 @@ as $$
 $$;
 
 grant execute on function public.is_admin() to authenticated;
+
+create or replace function public.is_asesor()
+returns boolean
+language sql
+security definer
+as $$
+  select exists (
+    select 1 from public.usuarios u
+    where u.id = auth.uid() and u.rol = 'asesor'
+  );
+$$;
+
+grant execute on function public.is_asesor() to authenticated;
 
 do $$
 begin

@@ -49,6 +49,19 @@ export const clienteSchema = z.object({
   id: z.string().uuid().optional(),
   nombre_completo: z.string().min(3, "Nombre requerido"),
   identificacion_oficial_url: z.string().optional().or(z.literal("")),
+  curp: z
+    .string()
+    .min(10, "CURP inválido")
+    .max(20)
+    .optional()
+    .or(z.literal("")),
+  rfc: z
+    .string()
+    .min(10, "RFC inválido")
+    .max(20)
+    .optional()
+    .or(z.literal("")),
+  numero_identificacion: z.string().min(4).optional().or(z.literal("")),
   telefono: z.string().optional().or(z.literal("")),
   email: z.string().email("Correo inválido").optional().or(z.literal("")),
   notas: z.string().optional().or(z.literal("")),
