@@ -204,7 +204,7 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
           <button
             type="button"
             onClick={() => changeDay(-1)}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-background/70 text-foreground transition hover:bg-background"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-background/70 text-foreground shadow-sm transition hover:bg-background"
             aria-label="Día anterior"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -216,7 +216,7 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
           <button
             type="button"
             onClick={() => changeDay(1)}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-background/70 text-foreground transition hover:bg-background"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-background/70 text-foreground shadow-sm transition hover:bg-background"
             aria-label="Día siguiente"
           >
             <ChevronRight className="h-5 w-5" />
@@ -226,20 +226,20 @@ export function CalendarView({ events, availability = [] }: CalendarViewProps) {
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary transition hover:bg-primary/15"
+            className="rounded-full border border-primary/50 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary transition hover:bg-primary/15"
           >
             Hoy
           </button>
         </div>
 
         {selectedDayAvailability.length > 0 ? (
-          <div className="rounded-2xl border border-emerald-400/40 bg-emerald-400/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-400">Disponibilidad del aval</p>
+          <div className="rounded-2xl border border-primary/35 bg-primary/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Disponibilidad del aval</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {selectedDayAvailability.map((block) => (
                 <span
                   key={block.id}
-                  className="inline-flex items-center rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200"
+                  className="inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary"
                 >
                   {formatTimeRange(block.startDate, block.endDate)}
                 </span>
