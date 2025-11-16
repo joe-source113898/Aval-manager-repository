@@ -98,6 +98,28 @@ Accede a `http://localhost:3000` para la vista pública y a `http://localhost:30
 2. Crea el bucket privado `documentos-aval` y aplica las políticas incluidas en `supabase-storage.buckets.json`.
 3. Configura las variables de entorno con los valores de tu proyecto.
 
+## Despliegue en PythonAnywhere + Vercel
+
+### Backend (PythonAnywhere)
+
+1. Actualiza el repositorio en `/home/avalmanager/Aval-manager-repository`.
+2. Copia `infra/pythonanywhere_asgi.py` sobre el WSGI activo:
+
+   ```bash
+   cp /home/avalmanager/Aval-manager-repository/infra/pythonanywhere_asgi.py /var/www/avalmanager_pythonanywhere_com_wsgi.py
+   ```
+
+   El archivo ajusta `sys.path`, carga `apps/api/.env` y expone FastAPI mediante el adaptador `_AsgiToWsgi`.
+3. Verifica que `/home/avalmanager/Aval-manager-repository/apps/api/.env` tenga las credenciales correctas (coinciden con Supabase y las usadas en local).
+4. En el panel de Web apps pulsa **Reload** para reiniciar uWSGI. Los logs deben dejar de mostrar referencias a `asgiref.wsgi.AsgiToWsgi` o al error `FastAPI.__call__() missing ... send`.
+5. Prueba `https://avalmanager.pythonanywhere.com/health` y la URL del proxy (`/storage/proxy?token=...`). Si el visor PDF muestra errores, revisa `error.log` buscando `SIGPIPE` o `write error`.
+
+### Frontend (Vercel)
+
+1. Define los mismos valores que en `.env.local` dentro de los Environment Variables de Vercel. Los endpoints deben apuntar a `https://avalmanager.pythonanywhere.com`.
+2. Lanza un redeploy para que los cambios surtan efecto (`vercel --prod` o botón **Redeploy**).
+3. Prueba `/documentos` y el resto de rutas que consumen PDFs. Si falla, captura los logs recientes de Vercel y PythonAnywhere para diagnóstico.
+
 ### Sincronización automática vía Supabase CLI
 
 - `pnpm supabase:watch` – Observa los archivos SQL y lanza `supabase db push --yes` al detectar cambios.
